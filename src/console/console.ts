@@ -39,11 +39,12 @@ const settingsRetryAttempts = document.getElementById('settings-retry-attempts')
 const settingsMaxRetryDelay = document.getElementById('settings-max-retry-delay') as HTMLInputElement;
 
 // Stats elements
+const versionInfo = document.getElementById('version-info')!;
 const statPending = document.getElementById('stat-pending')!;
 const statProcessing = document.getElementById('stat-processing')!;
 const statProcessed = document.getElementById('stat-processed')!;
 const statSucceeded = document.getElementById('stat-succeeded')!;
-const statFailed = document.getElementById('stat-failed')!
+const statFailed = document.getElementById('stat-failed')!;
 
 // Filter checkboxes
 const filterDebug = document.getElementById('filter-debug') as HTMLInputElement;
@@ -882,6 +883,14 @@ function stopRefreshInterval() {
   }
 }
 
+/**
+ * Load and display extension version
+ */
+function loadVersion() {
+  const manifest = chrome.runtime.getManifest();
+  versionInfo.textContent = `v${manifest.version}`;
+}
+
 // Only refresh when page is visible
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -893,6 +902,9 @@ document.addEventListener('visibilitychange', () => {
     startRefreshInterval();
   }
 });
+
+// Initialize version info
+loadVersion();
 
 // Start refreshing
 startRefreshInterval();

@@ -306,7 +306,13 @@ async function automateExclusiveSale(job: Job): Promise<void> {
 
 // Listen for messages from background service worker
 chrome.runtime.onMessage.addListener((message: MessageType, _sender, sendResponse) => {
-  if (message.type === 'START_JOB' && message.job) {
+  // Respond to ping messages to confirm script is loaded
+  if ('type' in message && message.type === 'PING') {
+    sendResponse({ ready: true });
+    return true;
+  }
+
+  if ('type' in message && message.type === 'START_JOB') {
     const job = message.job;
 
     Logger.info(`Received job: ${job.deviation.title}`, { jobId: job.id });

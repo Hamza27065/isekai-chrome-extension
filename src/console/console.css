@@ -257,7 +257,24 @@ body {
   display: flex;
   gap: 1.5rem;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+}
+
+.stats-left {
+  display: flex;
+  align-items: center;
+}
+
+.stats-right {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.version-info {
+  font-size: 0.75rem;
+  color: var(--console-muted);
+  font-family: var(--font-mono);
 }
 
 .stat-item {

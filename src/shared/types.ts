@@ -66,11 +66,11 @@ export interface LogEntry {
   jobId?: string;
 }
 
-export interface MessageType {
-  type: 'START_JOB' | 'JOB_SUCCESS' | 'JOB_FAILED' | 'CAPTURE_SCREENSHOT' | 'HEARTBEAT';
-  job?: Job;
-  jobId?: string;
-  error?: string;
-  tabId?: number;
-  step?: string;
-}
+export type MessageType =
+  | { type: 'PING' }
+  | { type: 'START_JOB'; job: Job }
+  | { type: 'JOB_SUCCESS'; jobId: string }
+  | { type: 'JOB_FAILED'; jobId: string; error: string }
+  | { action: 'START_POLLING' }
+  | { action: 'STOP_POLLING' }
+  | { action: 'GET_STATUS' };

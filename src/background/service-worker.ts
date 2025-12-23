@@ -156,9 +156,9 @@ async function startPolling(): Promise<void> {
 
     Logger.info(`Polling started (interval: ${interval} minute${interval > 1 ? 's' : ''})`);
 
-    // Update badge
+    // Update badge to green indicator
     await chrome.action.setBadgeBackgroundColor({ color: '#00e59b' });
-    await chrome.action.setBadgeText({ text: '•' });
+    await chrome.action.setBadgeText({ text: ' ' });
 
     // Trigger immediate poll
     await pollForJob();
@@ -172,7 +172,8 @@ async function startPolling(): Promise<void> {
 
     // Stop polling and update state
     await chrome.storage.local.set({ [STORAGE_KEYS.IS_RUNNING]: false });
-    await chrome.action.setBadgeText({ text: '' });
+    await chrome.action.setBadgeBackgroundColor({ color: '#808080' });
+    await chrome.action.setBadgeText({ text: ' ' });
 
     throw error;
   }
@@ -185,8 +186,9 @@ async function stopPolling(): Promise<void> {
   await chrome.alarms.clear(ALARM_NAMES.JOB_POLL);
   Logger.info('Polling stopped');
 
-  // Update badge
-  await chrome.action.setBadgeText({ text: '' });
+  // Update badge to grey indicator
+  await chrome.action.setBadgeBackgroundColor({ color: '#808080' });
+  await chrome.action.setBadgeText({ text: ' ' });
 }
 
 /**
@@ -282,81 +284,69 @@ async function processJob(job: Job): Promise<void> {
       throw new Error('Failed to create tab');
     }
 
-    Logger.success(`DeviantArt page loaded successfully (Tab ID: ${tab.id})`);
+    const tabId = tab.id;
+    Logger.success(`DeviantArt page opened (Tab ID: ${tabId})`);
 
     // Track active job
-    activeJobs.set(tab.id, job);
+    activeJobs.set(tabId, job);
 
     // Set timeout for job
     const timeoutId = setTimeout(() => {
-      handleJobTimeout(tab.id!);
+      handleJobTimeout(tabId);
     }, JOB_TIMEOUT) as unknown as number;
-    jobTimeouts.set(tab.id, timeoutId);
+    jobTimeouts.set(tabId, timeoutId);
 
-    // Wait for tab to load, then inject content script
-    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
-      if (tabId === tab.id && changeInfo.status === 'complete') {
-        chrome.tabs.onUpdated.removeListener(listener);
+    // Wait for tab to fully load by polling chrome.tabs.get()
+    const waitForTabLoad = async (maxAttempts = 30): Promise<void> => {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms between checks
 
-        // Inject content script programmatically to ensure it's loaded
-        chrome.scripting.executeScript({
-          target: { tabId: tab.id! },
-          files: ['src/content/deviantart-automation.ts']
-        }).then(() => {
-          Logger.info('Content script injected successfully', {}, job.id);
-
-          // Wait a bit for script to initialize
-          setTimeout(() => {
-            sendMessageWithRetry();
-          }, 1000);
-        }).catch((error) => {
-          Logger.error('Failed to inject content script', { error: error.message }, job.id);
-          handleJobFailure(tab.id!, job.id, `Failed to inject content script: ${error.message}`);
-        });
-
-        // Retry sending message to content script with exponential backoff
-        const sendMessageWithRetry = async (attempt: number = 1): Promise<void> => {
-          // Load retry settings from storage
-          const retrySettings = await chrome.storage.local.get([
-            STORAGE_KEYS.RETRY_ATTEMPTS,
-            STORAGE_KEYS.MAX_RETRY_DELAY,
-          ]);
-          const maxAttempts = retrySettings[STORAGE_KEYS.RETRY_ATTEMPTS] || DEFAULT_RETRY_ATTEMPTS;
-          const maxRetryDelay = retrySettings[STORAGE_KEYS.MAX_RETRY_DELAY] || DEFAULT_MAX_RETRY_DELAY;
-
-          const delay = Math.min(1000 * Math.pow(2, attempt - 1), maxRetryDelay); // Exponential backoff in seconds
-
-          await new Promise(resolve => setTimeout(resolve, delay));
-
-          try {
-            Logger.info(`Sending automation instructions to content script (attempt ${attempt}/${maxAttempts})`, {}, job.id);
-
-            const response = await chrome.tabs.sendMessage(tab.id!, {
-              type: 'START_JOB',
-              job,
-            } as MessageType);
-
-            if (response && response.received) {
-              Logger.info('Content script acknowledged job message', {}, job.id);
-            } else {
-              throw new Error('Content script did not acknowledge message');
-            }
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-            if (attempt < maxAttempts) {
-              Logger.warning(`Failed to send message to content script (attempt ${attempt}/${maxAttempts}), retrying...`, { error: errorMessage }, job.id);
-              await sendMessageWithRetry(attempt + 1);
-            } else {
-              Logger.error(`Failed to communicate with content script after ${maxAttempts} attempts`, { error: errorMessage }, job.id);
-              handleJobFailure(tab.id!, job.id, `Failed to communicate with content script after ${maxAttempts} attempts: ${errorMessage}`);
-            }
-          }
-        };
-
-        sendMessageWithRetry();
+        const currentTab = await chrome.tabs.get(tabId);
+        if (currentTab.status === 'complete') {
+          Logger.info(`Tab ${tabId} finished loading after ${attempt * 500}ms`, {}, job.id);
+          return;
+        }
       }
-    });
+      throw new Error('Tab loading timed out after 15 seconds');
+    };
+
+    // Wait for tab to load
+    await waitForTabLoad();
+
+    // Ping the content script to ensure it's ready
+    const waitForContentScript = async (maxAttempts = 20): Promise<void> => {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms between pings
+
+        try {
+          const response = await chrome.tabs.sendMessage(tabId, { type: 'PING' });
+          if (response && response.ready) {
+            Logger.info(`Content script ready on tab ${tabId} after ${attempt * 500}ms`, {}, job.id);
+            return;
+          }
+        } catch (_error) {
+          // Content script not ready yet, will retry
+          Logger.debug(`Ping attempt ${attempt}/20 failed, retrying...`, {}, job.id);
+        }
+      }
+      throw new Error('Content script did not become ready after 10 seconds');
+    };
+
+    // Wait for content script to be ready
+    await waitForContentScript();
+
+    // Content script is ready, send the job
+    Logger.info(`Sending automation instructions to content script`, {}, job.id);
+    const response = await chrome.tabs.sendMessage(tabId, {
+      type: 'START_JOB',
+      job,
+    } as MessageType);
+
+    if (!response || !response.received) {
+      throw new Error('Content script did not acknowledge job message');
+    }
+
+    Logger.success('Content script acknowledged job, automation started', {}, job.id);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     Logger.error(`Failed to process job: ${message}`, { jobId: job.id });
@@ -414,9 +404,6 @@ async function handleJobSuccess(tabId: number, jobId: string): Promise<void> {
     await chrome.storage.local.set({ [STORAGE_KEYS.STATS]: stats });
 
     Logger.info(`Total jobs completed: ${stats.succeeded}`);
-
-    // Update badge
-    await chrome.action.setBadgeText({ text: stats.succeeded.toString() });
 
     // Update job in history
     await updateJobInHistory(jobId, 'completed');
@@ -521,7 +508,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
  * Listen for messages from content scripts
  */
 chrome.runtime.onMessage.addListener((message: MessageType, sender, sendResponse) => {
-  if (message.type === 'JOB_SUCCESS' && message.jobId) {
+  if ('type' in message && message.type === 'JOB_SUCCESS') {
     const tabId = sender.tab?.id;
     if (tabId) {
       handleJobSuccess(tabId, message.jobId);
@@ -530,7 +517,7 @@ chrome.runtime.onMessage.addListener((message: MessageType, sender, sendResponse
     return true;
   }
 
-  if (message.type === 'JOB_FAILED' && message.jobId && message.error) {
+  if ('type' in message && message.type === 'JOB_FAILED') {
     const tabId = sender.tab?.id || null;
     handleJobFailure(tabId, message.jobId, message.error);
     sendResponse({ received: true });
@@ -545,45 +532,45 @@ chrome.runtime.onMessage.addListener((message: MessageType, sender, sendResponse
  */
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   const job = activeJobs.get(tabId);
-  if (job) {
-    // Clean up tracking
-    activeJobs.delete(tabId);
-    const timeoutId = jobTimeouts.get(tabId);
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      jobTimeouts.delete(tabId);
-    }
+  if (!job) return;
 
-    // Get current retry count for this job
-    const retryCount = tabClosureRetries.get(job.id) || 0;
+  // Clean up tracking
+  activeJobs.delete(tabId);
+  const timeoutId = jobTimeouts.get(tabId);
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+    jobTimeouts.delete(tabId);
+  }
 
-    if (retryCount < MAX_TAB_CLOSURE_RETRIES) {
-      // Retry locally - don't waste backend retry
-      const newRetryCount = retryCount + 1;
-      tabClosureRetries.set(job.id, newRetryCount);
+  // Get current retry count for this job
+  const retryCount = tabClosureRetries.get(job.id) || 0;
 
-      Logger.warning(
-        `Tab ${tabId} was closed unexpectedly. Retrying job locally (attempt ${newRetryCount}/${MAX_TAB_CLOSURE_RETRIES})...`,
-        { jobId: job.id }
-      );
+  if (retryCount < MAX_TAB_CLOSURE_RETRIES) {
+    // Retry locally - don't waste backend retry
+    const newRetryCount = retryCount + 1;
+    tabClosureRetries.set(job.id, newRetryCount);
 
-      // Wait a bit before retrying
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    Logger.warning(
+      `Tab ${tabId} closed unexpectedly. Retrying locally (${newRetryCount}/${MAX_TAB_CLOSURE_RETRIES})...`,
+      { jobId: job.id }
+    );
 
-      // Retry the job by processing it again
-      processJob(job).catch((error) => {
-        Logger.error(`Failed to retry job after tab closure: ${error.message}`, {}, job.id);
-        handleJobFailure(null, job.id, `Failed to retry after tab closure: ${error.message}`);
-      });
-    } else {
-      // Max local retries exceeded, report to backend
-      Logger.error(
-        `Tab ${tabId} was closed ${MAX_TAB_CLOSURE_RETRIES} times. Reporting failure to backend.`,
-        { jobId: job.id }
-      );
-      tabClosureRetries.delete(job.id); // Clean up
-      handleJobFailure(tabId, job.id, `Tab was closed ${MAX_TAB_CLOSURE_RETRIES} times by user`);
-    }
+    // Wait 2 seconds before retrying
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Retry the job
+    processJob(job).catch((error) => {
+      Logger.error(`Failed to retry job: ${error.message}`, {}, job.id);
+      handleJobFailure(null, job.id, `Retry failed: ${error.message}`);
+    });
+  } else {
+    // Max retries exceeded
+    Logger.error(
+      `Tab closed ${MAX_TAB_CLOSURE_RETRIES} times. Reporting to backend.`,
+      { jobId: job.id }
+    );
+    tabClosureRetries.delete(job.id);
+    handleJobFailure(null, job.id, `Tab closed ${MAX_TAB_CLOSURE_RETRIES} times`);
   }
 });
 
@@ -622,6 +609,18 @@ chrome.runtime.onMessage.addListener((message: any, _sender, sendResponse) => {
   }
 
   return false;
+});
+
+// Initialize badge on startup
+chrome.storage.local.get(STORAGE_KEYS.IS_RUNNING).then((result) => {
+  const isRunning = result[STORAGE_KEYS.IS_RUNNING] || false;
+  if (isRunning) {
+    chrome.action.setBadgeBackgroundColor({ color: '#00e59b' });
+    chrome.action.setBadgeText({ text: ' ' });
+  } else {
+    chrome.action.setBadgeBackgroundColor({ color: '#808080' });
+    chrome.action.setBadgeText({ text: ' ' });
+  }
 });
 
 Logger.info('Background service worker initialized');

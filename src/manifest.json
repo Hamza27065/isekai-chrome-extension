@@ -7,8 +7,7 @@
     "alarms",
     "storage",
     "tabs",
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
     "https://*.deviantart.com/*",
@@ -21,6 +20,13 @@
     "service_worker": "src/background/service-worker.ts",
     "type": "module"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://*.deviantart.com/*"],
+      "js": ["src/content/deviantart-automation.ts"],
+      "run_at": "document_end"
+    }
+  ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {
