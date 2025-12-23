@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Isekai Agent</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png" />
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <div class="popup-container">
+      <!-- Logo -->
+      <div class="logo-section">
+        <img src="../assets/logo.svg" alt="Isekai" class="logo" />
+      </div>
+
+      <!-- Status indicators -->
+      <div class="status-section">
+        <div id="status-indicator" class="status-indicator">
+          <span class="status-dot"></span>
+          <span id="status-text">Stopped</span>
+        </div>
+        <div id="api-status-indicator" class="status-indicator">
+          <span class="status-dot"></span>
+          <span id="api-status-text">Checking</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div id="stats-section" class="stats-section" style="display: none;">
+        <div class="stat-row">
+          <span class="stat-label">Processed</span>
+          <span class="stat-value" id="stat-processed">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Succeeded</span>
+          <span class="stat-value" id="stat-succeeded">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Failed</span>
+          <span class="stat-value" id="stat-failed">0</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-section">
+        <button id="toggle-btn" class="btn-primary btn-with-icon" disabled>
+          <span class="btn-icon-wrapper">
+            <i data-lucide="play" class="icon-play"></i>
+            <i data-lucide="stop-circle" class="icon-stop" style="display: none;"></i>
+          </span>
+          <span id="toggle-btn-text">Start</span>
+        </button>
+        <button id="console-btn" class="btn-secondary btn-with-icon">
+          <i data-lucide="terminal"></i>
+          <span>Console</span>
+        </button>
+      </div>
+
+      <!-- Config warning banner (shown if not configured) -->
+      <div id="config-banner" class="config-banner" style="display: none;">
+        <i data-lucide="alert-circle"></i>
+        <span>API not configured. Open Console to configure settings.</span>
+      </div>
+    </div>
+
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>

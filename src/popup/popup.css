@@ -1,0 +1,214 @@
+/* Popup specific styles */
+
+.popup-container {
+  width: 320px;
+  padding: 1.25rem;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Logo section */
+.logo-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  height: 36px;
+  width: auto;
+}
+
+/* Status section */
+.status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.status-indicator.active .status-dot {
+  background-color: var(--primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-indicator.processing .status-dot {
+  background-color: hsl(45 100% 60%);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status-indicator.stopped .status-dot {
+  background-color: var(--muted-foreground);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Stats section */
+.stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  margin-bottom: 1rem;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.stat-label {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.stat-value {
+  color: var(--foreground);
+  font-weight: 600;
+  font-family: 'Geist Mono', monospace;
+}
+
+/* Config banner */
+.config-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  background-color: hsl(45 100% 60% / 0.1);
+  border: 1px solid hsl(45 100% 60%);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--foreground);
+}
+
+.config-banner i,
+.config-banner svg {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+  color: hsl(45 100% 60%);
+}
+
+/* Controls section */
+.controls-section {
+  display: flex;
+  flex-direction: row;
+  gap: 0.625rem;
+}
+
+.controls-section button {
+  flex: 1;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  height: 42px;
+}
+
+.controls-section button:hover:not(:disabled) {
+  background-color: var(--primary);
+  color: var(--background);
+}
+
+/* Stop button specific hover (only when toggle button has btn-secondary class) */
+#toggle-btn.btn-secondary:hover:not(:disabled) {
+  background-color: hsl(0 70% 70%);
+  color: var(--background);
+}
+
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-with-icon i,
+.btn-with-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.btn-icon-wrapper {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon-wrapper i,
+.btn-icon-wrapper svg {
+  position: absolute;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+
+/* Loading state */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success/error feedback */
+.feedback-message {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid;
+  font-size: 0.875rem;
+}
+
+.feedback-message.success {
+  background-color: var(--console-success);
+  border-color: var(--console-success);
+  color: var(--primary-foreground);
+}
+
+.feedback-message.error {
+  background-color: var(--console-error);
+  border-color: var(--console-error);
+  color: var(--destructive-foreground);
+}

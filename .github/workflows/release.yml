@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Build extension
+        run: pnpm build
+
+      - name: Create release archive
+        run: |
+          cd dist
+          zip -r ../isekai-chrome-extension.zip .
+          cd ..
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Verify manifest version matches tag
+        run: |
+          MANIFEST_VERSION=$(node -p "require('./src/manifest.json').version")
+          TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
+          echo "Manifest version: $MANIFEST_VERSION"
+          echo "Tag version: $TAG_VERSION"
+          if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
+            echo "Error: manifest.json version ($MANIFEST_VERSION) does not match tag version ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "Version check passed!"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: isekai-chrome-extension.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          name: Release v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## Isekai Chrome Extension v${{ steps.get_version.outputs.VERSION }}
+
+            Browser extension to help artists manage DeviantArt exclusive sales efficiently.
+
+            ### Installation
+
+            1. Download `isekai-chrome-extension.zip` below
+            2. Extract to a permanent location on your computer
+            3. Open `chrome://extensions/` in your browser
+            4. Enable "Developer mode" (top-right toggle)
+            5. Click "Load unpacked" and select the extracted folder
+            6. Configure your API URL and API key
+
+            For detailed instructions, see the [Installation Guide](https://isekai.sh/chrome-extension/installation).
+
+            ### Documentation
+
+            - [Installation](https://isekai.sh/chrome-extension/installation)
+            - [Configuration](https://isekai.sh/chrome-extension/configuration)
+            - [Usage Guide](https://isekai.sh/chrome-extension/usage)
+            - [Troubleshooting](https://isekai.sh/chrome-extension/troubleshooting)
+
+            ### What's Changed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
