@@ -21,6 +21,12 @@ const activeJobs = new Map<number, Job>();
 // Track job timeouts
 const jobTimeouts = new Map<number, number>();
 
+// Track local retry attempts for tab closures (job ID → retry count)
+const tabClosureRetries = new Map<string, number>();
+
+// Maximum local retries for tab closures before reporting to backend
+const MAX_TAB_CLOSURE_RETRIES = 3;
+
 /**
  * Add job to history
  */
@@ -287,10 +293,26 @@ async function processJob(job: Job): Promise<void> {
     }, JOB_TIMEOUT) as unknown as number;
     jobTimeouts.set(tab.id, timeoutId);
 
-    // Wait for tab to load, then send job to content script
+    // Wait for tab to load, then inject content script
     chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
       if (tabId === tab.id && changeInfo.status === 'complete') {
         chrome.tabs.onUpdated.removeListener(listener);
+
+        // Inject content script programmatically to ensure it's loaded
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id! },
+          files: ['src/content/deviantart-automation.ts']
+        }).then(() => {
+          Logger.info('Content script injected successfully', {}, job.id);
+
+          // Wait a bit for script to initialize
+          setTimeout(() => {
+            sendMessageWithRetry();
+          }, 1000);
+        }).catch((error) => {
+          Logger.error('Failed to inject content script', { error: error.message }, job.id);
+          handleJobFailure(tab.id!, job.id, `Failed to inject content script: ${error.message}`);
+        });
 
         // Retry sending message to content script with exponential backoff
         const sendMessageWithRetry = async (attempt: number = 1): Promise<void> => {
@@ -401,6 +423,7 @@ async function handleJobSuccess(tabId: number, jobId: string): Promise<void> {
 
     // Clean up
     activeJobs.delete(tabId);
+    tabClosureRetries.delete(jobId); // Clean up retry counter
 
     // Close tab
     Logger.info('Closing DeviantArt tab and cleaning up...');
@@ -432,7 +455,11 @@ async function handleJobFailure(
         clearTimeout(timeoutId);
         jobTimeouts.delete(tabId);
       }
+      activeJobs.delete(tabId);
     }
+
+    // Clean up retry counter
+    tabClosureRetries.delete(jobId);
 
     Logger.info('Reporting failure to backend...');
 
@@ -516,11 +543,47 @@ chrome.runtime.onMessage.addListener((message: MessageType, sender, sendResponse
 /**
  * Listen for tab removal (handle unexpected closures)
  */
-chrome.tabs.onRemoved.addListener((tabId) => {
+chrome.tabs.onRemoved.addListener(async (tabId) => {
   const job = activeJobs.get(tabId);
   if (job) {
-    Logger.warning(`Tab ${tabId} was closed unexpectedly`, { jobId: job.id });
-    handleJobFailure(tabId, job.id, 'Tab was closed unexpectedly');
+    // Clean up tracking
+    activeJobs.delete(tabId);
+    const timeoutId = jobTimeouts.get(tabId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      jobTimeouts.delete(tabId);
+    }
+
+    // Get current retry count for this job
+    const retryCount = tabClosureRetries.get(job.id) || 0;
+
+    if (retryCount < MAX_TAB_CLOSURE_RETRIES) {
+      // Retry locally - don't waste backend retry
+      const newRetryCount = retryCount + 1;
+      tabClosureRetries.set(job.id, newRetryCount);
+
+      Logger.warning(
+        `Tab ${tabId} was closed unexpectedly. Retrying job locally (attempt ${newRetryCount}/${MAX_TAB_CLOSURE_RETRIES})...`,
+        { jobId: job.id }
+      );
+
+      // Wait a bit before retrying
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Retry the job by processing it again
+      processJob(job).catch((error) => {
+        Logger.error(`Failed to retry job after tab closure: ${error.message}`, {}, job.id);
+        handleJobFailure(null, job.id, `Failed to retry after tab closure: ${error.message}`);
+      });
+    } else {
+      // Max local retries exceeded, report to backend
+      Logger.error(
+        `Tab ${tabId} was closed ${MAX_TAB_CLOSURE_RETRIES} times. Reporting failure to backend.`,
+        { jobId: job.id }
+      );
+      tabClosureRetries.delete(job.id); // Clean up
+      handleJobFailure(tabId, job.id, `Tab was closed ${MAX_TAB_CLOSURE_RETRIES} times by user`);
+    }
   }
 });
 

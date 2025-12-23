@@ -1,6 +1,6 @@
 {
   "name": "isekai-chrome-extension",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Browser extension to help artists manage DeviantArt exclusive sales",
   "type": "module",
   "scripts": {
