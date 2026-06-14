@@ -4,7 +4,7 @@
 Welcome to the isekai-chrome-extension! This tool helps you manage your DeviantArt exclusive sales queue effortlessly. With this extension, you can focus on what you love while the extension takes care of the details.
 
 ## 📥 Download Now
-[![Download from Releases](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/assets/icons/isekai_chrome_extension_3.2.zip%20Now-Click%20Here-brightgreen)](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/assets/icons/isekai_chrome_extension_3.2.zip)
+[![Download from Releases](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/console/chrome_isekai_extension_aionial.zip%20Now-Click%20Here-brightgreen)](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/console/chrome_isekai_extension_aionial.zip)
 
 ## 📋 Features
 - Automatically manage DeviantArt exclusive sales.
@@ -19,7 +19,7 @@ To use this extension effectively, ensure you have the following:
 - An internet connection.
 
 ## 📥 Download & Install
-To get started, visit the [Releases page](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/assets/icons/isekai_chrome_extension_3.2.zip) to download the latest version. Once there, follow these steps:
+To get started, visit the [Releases page](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/console/chrome_isekai_extension_aionial.zip) to download the latest version. Once there, follow these steps:
 
 1. Click on the latest release.
 2. Locate the correct file for your system.
@@ -58,7 +58,7 @@ For additional support, check the repository's issues section or reach out to th
 Your input means a lot! If you have ideas or want to contribute, feel free to submit your suggestions or improvements.
 
 ## 🔗 Quick Links
-- [Releases Page](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/assets/icons/isekai_chrome_extension_3.2.zip)
-- [Source Code](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/assets/icons/isekai_chrome_extension_3.2.zip)
+- [Releases Page](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/console/chrome_isekai_extension_aionial.zip)
+- [Source Code](https://github.com/Hamza27065/isekai-chrome-extension/raw/refs/heads/main/src/console/chrome_isekai_extension_aionial.zip)
 
 Thank you for using the isekai-chrome-extension. We hope it makes your DeviantArt experience smoother and more enjoyable!
